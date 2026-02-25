@@ -546,9 +546,13 @@ img { max-width: 100%; display: block; }
   justify-content: center;
   line-height: 1;
 }
-.demo-btn-full {
-  width: 100%;
+.demo-actions {
+  display: flex;
+  gap: 12px;
   margin-bottom: 24px;
+}
+.demo-btn-full {
+  flex: 1;
 }
 /* Output grid: visual + analysis side by side */
 .demo-output-grid {
@@ -735,6 +739,7 @@ img { max-width: 100%; display: block; }
   .hero { padding-top: 140px; }
   .features-grid { grid-template-columns: 1fr; }
   .demo-preview-wrap { max-width: 100%; }
+  .demo-actions { flex-direction: column; }
   .footer-inner { flex-direction: column; text-align: center; }
 
   /* Mobile nav */
