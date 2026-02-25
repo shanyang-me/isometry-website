@@ -209,7 +209,9 @@
   }
 
   function draw() {
-    ctx.clearRect(0, 0, W, H);
+    // Fill dark background on canvas so neurons are visible through transparent sections
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, W, H);
 
     // Brain outline glow (very subtle)
     const bcx = W * 0.5;
