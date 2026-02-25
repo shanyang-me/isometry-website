@@ -7,20 +7,12 @@
   const ctx = canvas.getContext('2d');
   let W, H;
 
-  function resize() {
-    W = canvas.width = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-    buildNetwork();
-  }
-  window.addEventListener('resize', resize);
-  resize();
-
   // --- Config ---
-  const BRAIN_NEURONS = 90;
-  const SCATTER_NEURONS = 30;
-  const AXON_DIST = 180;
-  const FIRE_INTERVAL = 500;
-  const SIGNAL_SPEED = 2.5;
+  const BRAIN_NEURONS = 35;
+  const SCATTER_NEURONS = 10;
+  const AXON_DIST = 200;
+  const FIRE_INTERVAL = 1500;
+  const SIGNAL_SPEED = 1.2;
 
   // Physics symbols that float around
   const SYMBOLS = [
@@ -33,6 +25,13 @@
   let axons = [];
   let signals = [];
   let symbols = [];
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    buildNetwork();
+  }
+  window.addEventListener('resize', resize);
 
   // Brain silhouette: point-in-brain test using an ellipse + bumps
   function brainShape(x, y, cx, cy, rw, rh) {
@@ -57,19 +56,19 @@
     signals = [];
     symbols = [];
 
-    // Brain center and size (upper portion of viewport)
+    // Brain center and size — spread across most of viewport
     const bcx = W * 0.5;
-    const bcy = H * 0.38;
-    const brw = Math.min(W * 0.38, 500);
-    const brh = Math.min(H * 0.32, 380);
+    const bcy = H * 0.4;
+    const brw = Math.min(W * 0.48, 650);
+    const brh = Math.min(H * 0.42, 500);
 
     // Place neurons inside brain shape
     let placed = 0;
     let attempts = 0;
     while (placed < BRAIN_NEURONS && attempts < 5000) {
       attempts++;
-      const x = bcx + (Math.random() - 0.5) * brw * 2.2;
-      const y = bcy + (Math.random() - 0.5) * brh * 2.2;
+      const x = bcx + (Math.random() - 0.5) * brw * 2.6;
+      const y = bcy + (Math.random() - 0.5) * brh * 2.6;
       if (brainShape(x, y, bcx, bcy, brw, brh)) {
         // Vary size — larger near center
         const distFromCenter = Math.sqrt((x - bcx) ** 2 + (y - bcy) ** 2);
@@ -77,7 +76,7 @@
         const centralness = 1 - distFromCenter / maxDist;
         neurons.push({
           x, y,
-          r: 1.8 + centralness * 2.5 + Math.random() * 1.2,
+          r: 1.5 + centralness * 2.5 + Math.random() * 1,
           firing: 0,
           refractory: 0,
           vx: (Math.random() - 0.5) * 0.08,
@@ -91,12 +90,12 @@
       }
     }
 
-    // Scatter some neurons outside brain (spinal/peripheral)
+    // Scatter some neurons across the full viewport
     for (let i = 0; i < SCATTER_NEURONS; i++) {
       neurons.push({
         x: Math.random() * W,
-        y: bcy + brh * 0.8 + Math.random() * (H - bcy - brh * 0.8 + 100),
-        r: 1.2 + Math.random() * 1.5,
+        y: Math.random() * H,
+        r: 1 + Math.random() * 1.5,
         firing: 0,
         refractory: 0,
         vx: (Math.random() - 0.5) * 0.12,
@@ -128,8 +127,8 @@
         y: Math.random() * H,
         vx: (Math.random() - 0.5) * 0.2,
         vy: (Math.random() - 0.5) * 0.15,
-        alpha: 0.08 + Math.random() * 0.10,
-        size: 10 + Math.random() * 6,
+        alpha: 0.18 + Math.random() * 0.15,
+        size: 13 + Math.random() * 8,
         rotation: (Math.random() - 0.5) * 0.3,
         rotSpeed: (Math.random() - 0.5) * 0.001,
       });
@@ -167,7 +166,7 @@
   function maybeFireRandom(time) {
     if (time - lastFire > FIRE_INTERVAL) {
       lastFire = time;
-      const count = 1 + Math.floor(Math.random() * 4);
+      const count = 1 + Math.floor(Math.random() * 2);
       for (let c = 0; c < count; c++) {
         fireNeuron(Math.floor(Math.random() * neurons.length));
       }
@@ -209,18 +208,18 @@
   }
 
   function draw() {
-    // Fill dark background on canvas so neurons are visible through transparent sections
-    ctx.fillStyle = '#0a0a0a';
+    // Fill dark background
+    ctx.fillStyle = '#0c0c0c';
     ctx.fillRect(0, 0, W, H);
 
-    // Brain outline glow (very subtle)
+    // Brain outline glow
     const bcx = W * 0.5;
     const bcy = H * 0.38;
     const brw = Math.min(W * 0.38, 500);
     const brh = Math.min(H * 0.32, 380);
     const grad = ctx.createRadialGradient(bcx, bcy, 0, bcx, bcy, Math.max(brw, brh));
-    grad.addColorStop(0, 'rgba(211,255,202,0.06)');
-    grad.addColorStop(0.7, 'rgba(211,255,202,0.03)');
+    grad.addColorStop(0, 'rgba(211,255,202,0.08)');
+    grad.addColorStop(0.5, 'rgba(211,255,202,0.04)');
     grad.addColorStop(1, 'rgba(211,255,202,0)');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
@@ -230,15 +229,14 @@
       const a = neurons[ax.from];
       const b = neurons[ax.to];
       const bright = Math.max(a.firing, b.firing);
-      const alpha = 0.08 + bright * 0.35;
+      const alpha = 0.09 + bright * 0.3;
       ctx.beginPath();
-      // Slight curve via midpoint offset
       const mx = (a.x + b.x) / 2 + (a.y - b.y) * 0.1;
       const my = (a.y + b.y) / 2 + (b.x - a.x) * 0.1;
       ctx.moveTo(a.x, a.y);
       ctx.quadraticCurveTo(mx, my, b.x, b.y);
       ctx.strokeStyle = `rgba(211,255,202,${alpha})`;
-      ctx.lineWidth = 0.6 + bright * 1.8;
+      ctx.lineWidth = 0.5 + bright * 1.2;
       ctx.stroke();
     }
 
@@ -246,9 +244,9 @@
     for (const n of neurons) {
       if (n.dendrites === 0) continue;
       const f = n.firing;
-      const alpha = 0.12 + f * 0.25;
+      const alpha = 0.1 + f * 0.25;
       ctx.strokeStyle = `rgba(211,255,202,${alpha})`;
-      ctx.lineWidth = 0.7;
+      ctx.lineWidth = 0.6;
       for (let d = 0; d < n.dendrites; d++) {
         const angle = n.dendriteAngle + (d * Math.PI * 2 / n.dendrites);
         const len = n.r * 4 + Math.random() * 3;
@@ -283,13 +281,13 @@
       const glow = 1 - Math.abs(s.progress - 0.5) * 2;
 
       ctx.beginPath();
-      ctx.arc(px, py, 6 + glow * 8, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(211,255,202,${0.15 + glow * 0.3})`;
+      ctx.arc(px, py, 4 + glow * 6, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(211,255,202,${0.12 + glow * 0.25})`;
       ctx.fill();
 
       ctx.beginPath();
-      ctx.arc(px, py, 2 + glow * 2, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(211,255,202,${0.6 + glow * 0.4})`;
+      ctx.arc(px, py, 1.5 + glow * 2, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(211,255,202,${0.5 + glow * 0.35})`;
       ctx.fill();
     }
 
@@ -300,14 +298,13 @@
       // Firing glow
       if (f > 0.05) {
         ctx.beginPath();
-        ctx.arc(n.x, n.y, n.r + 12 + f * 20, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(211,255,202,${f * 0.25})`;
+        ctx.arc(n.x, n.y, n.r + 8 + f * 14, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(211,255,202,${f * 0.16})`;
         ctx.fill();
 
-        // Secondary glow ring
         ctx.beginPath();
-        ctx.arc(n.x, n.y, n.r + 5 + f * 10, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(211,255,202,${f * 0.4})`;
+        ctx.arc(n.x, n.y, n.r + 3 + f * 6, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(211,255,202,${f * 0.28})`;
         ctx.fill();
       }
 
@@ -315,16 +312,16 @@
       ctx.beginPath();
       ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
       ctx.fillStyle = f > 0.05
-        ? `rgba(211,255,202,${0.3 + f * 0.7})`
-        : `rgba(211,255,202,${n.inBrain ? 0.25 : 0.15})`;
+        ? `rgba(211,255,202,${0.3 + f * 0.5})`
+        : `rgba(211,255,202,${n.inBrain ? 0.22 : 0.12})`;
       ctx.fill();
 
       ctx.beginPath();
       ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
       ctx.strokeStyle = f > 0.05
-        ? `rgba(211,255,202,${0.5 + f * 0.5})`
-        : `rgba(211,255,202,${n.inBrain ? 0.35 : 0.2})`;
-      ctx.lineWidth = 0.8;
+        ? `rgba(211,255,202,${0.4 + f * 0.4})`
+        : `rgba(211,255,202,${n.inBrain ? 0.3 : 0.18})`;
+      ctx.lineWidth = 0.7;
       ctx.stroke();
     }
 
@@ -336,7 +333,7 @@
       ctx.save();
       ctx.translate(s.x, s.y);
       ctx.rotate(s.rotation);
-      ctx.fillStyle = `rgba(211,255,202,${s.alpha * 2.5})`;
+      ctx.fillStyle = `rgba(211,255,202,${Math.min(s.alpha * 2.5, 0.55)})`;
       ctx.font = `500 ${s.size}px "JetBrains Mono", monospace`;
       ctx.fillText(s.text, 0, 0);
       ctx.restore();
@@ -352,7 +349,8 @@
     requestAnimationFrame(loop);
   }
 
-  // Start animation (ignore prefers-reduced-motion for now to debug)
+  // Initialize and start animation
+  resize();
   requestAnimationFrame(loop);
 })();
 

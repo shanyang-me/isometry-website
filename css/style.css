@@ -47,7 +47,7 @@ img { max-width: 100%; display: block; }
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: -1;
+  z-index: 0;
   pointer-events: none;
 }
 
@@ -58,6 +58,8 @@ img { max-width: 100%; display: block; }
   padding: 0 24px;
 }
 .section {
+  position: relative;
+  z-index: 1;
   padding: var(--section-padding) 0;
 }
 .section-alt {
@@ -186,6 +188,8 @@ img { max-width: 100%; display: block; }
 
 /* ===== Hero ===== */
 .hero {
+  position: relative;
+  z-index: 1;
   padding: 180px 0 var(--section-padding);
   text-align: center;
 }
@@ -703,6 +707,8 @@ img { max-width: 100%; display: block; }
 
 /* ===== Footer ===== */
 .footer {
+  position: relative;
+  z-index: 1;
   border-top: 1px solid var(--border);
   padding: 40px 0;
 }
