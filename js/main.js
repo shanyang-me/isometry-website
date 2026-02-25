@@ -352,12 +352,8 @@
     requestAnimationFrame(loop);
   }
 
-  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (!prefersReduced) {
-    requestAnimationFrame(loop);
-  } else {
-    draw();
-  }
+  // Start animation (ignore prefers-reduced-motion for now to debug)
+  requestAnimationFrame(loop);
 })();
 
 // ===== Main site logic =====
