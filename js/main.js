@@ -527,21 +527,10 @@
   // Example loads only when button is clicked
 
   demoBtn.addEventListener('click', async () => {
-    if (currentMode === 'text') {
-      const scene = demoInput.value.trim();
-      if (!scene) { demoInput.focus(); return; }
-      await runAnalysis({ scene });
-    } else {
-      // If there's a text description (e.g. from example), use that for analysis
-      const scene = demoInput.value.trim();
-      if (scene) {
-        await runAnalysis({ scene });
-      } else if (uploadedFile) {
-        await runAnalysis({ image: uploadedFile });
-      } else {
-        dropzone.click();
-      }
-    }
+    // Always use text scene description for API (image upload not yet supported)
+    const scene = demoInput.value.trim();
+    if (!scene) { demoInput.focus(); return; }
+    await runAnalysis({ scene });
   });
 
   async function waitForModel() {
@@ -572,21 +561,10 @@
 
       demoOutput.innerHTML = '<div class="demo-loading">Analyzing scene (10-30s)...</div>';
 
-      let body, headers;
-      if (input.scene) {
-        headers = { 'Content-Type': 'application/json' };
-        body = JSON.stringify({ scene: input.scene });
-      } else {
-        const fd = new FormData();
-        fd.append('image', input.image);
-        body = fd;
-        headers = {};
-      }
-
       const res = await fetch(`${API_URL}/api/analyze`, {
         method: 'POST',
-        headers,
-        body,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scene: input.scene }),
         signal: AbortSignal.timeout(120000)
       });
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
