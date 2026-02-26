@@ -544,12 +544,34 @@
     }
   });
 
+  async function waitForModel() {
+    const maxWait = 90000; // 90 seconds max
+    const pollInterval = 2000;
+    const start = Date.now();
+    while (Date.now() - start < maxWait) {
+      try {
+        const res = await fetch(`${API_URL}/api/health`, { signal: AbortSignal.timeout(10000) });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === 'ok') return true;
+        }
+      } catch (e) { /* server not up yet */ }
+      await new Promise(r => setTimeout(r, pollInterval));
+    }
+    return false;
+  }
+
   async function runAnalysis(input) {
-    demoOutput.innerHTML = '<div class="demo-loading">Analyzing scene...</div>';
+    demoOutput.innerHTML = '<div class="demo-loading">Waking up server...</div>';
     demoVisual.innerHTML = '<div class="demo-loading" style="text-align:center">Generating visual prediction...</div>';
     demoBtn.disabled = true;
 
     try {
+      const ready = await waitForModel();
+      if (!ready) throw new Error('Server did not become ready in time');
+
+      demoOutput.innerHTML = '<div class="demo-loading">Analyzing scene (10-30s)...</div>';
+
       let body, headers;
       if (input.scene) {
         headers = { 'Content-Type': 'application/json' };
