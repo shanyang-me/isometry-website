@@ -1,11 +1,11 @@
 # Invariant Lab Website
 
-Product website for [Invariant Lab](https://github.com/shanyang-me/efference) — physics world models that understand invariant laws.
+Product website for [Invariant Lab](https://github.com/shanyang-me/invariant) — physics world models that understand invariant laws.
 
 ## Local Development
 
 ```bash
-cd ~/efference-website
+cd ~/invariant-website
 python -m http.server 8000
 # Open http://localhost:8000
 ```
